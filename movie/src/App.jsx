@@ -129,32 +129,30 @@ const App = () => {
                   <MovieCard movie={movie} />
 
                   {selectedMovie && selectedMovie.id === movie.id && (
-                    <div className="absolute inset-0 bg-black/90 text-white p-4 rounded-xl z-50 flex flex-col items-center justify-center">
+                  <div className="fixed inset-0 bg-black/90 text-white z-50 flex flex-col items-center justify-center p-4">
+                    <div className="relative max-w-lg w-full">
                       <img
                         src={`https://image.tmdb.org/t/p/w400${selectedMovie.poster_path}`}
                         alt={selectedMovie.title}
-                        className="rounded-lg mb-4 max-h-[300px] object-contain"
+                        className="rounded-lg mb-4 max-h-[400px] object-contain mx-auto"
                       />
-                      <h3 className="text-xl font-bold mb-2">{selectedMovie.title}</h3>
-                      <p className="text-gray-300 text-center text-sm">
-                        {selectedMovie.overview || "No description available."}
-                      </p>
-                      <div className="flex gap-4 mt-2 text-gray-400 text-xs">
+                      <h3 className="text-xl font-bold mb-2 text-center">{selectedMovie.title}</h3>
+                      <p className="text-gray-300 text-center text-sm">{selectedMovie.overview || "No description available."}</p>
+                      <div className="flex gap-4 mt-2 text-gray-400 text-xs justify-center">
                         <span>⭐ {selectedMovie.vote_average?.toFixed(1) || "N/A"}</span>
                         <span>📅 {selectedMovie.release_date?.slice(0, 4) || "—"}</span>
                         <span>🌐 {selectedMovie.original_language || "N/A"}</span>
                       </div>
                       <button
-                        className="mt-4 px-3 py-1 bg-white text-black rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedMovie(null);
-                        }}
+                        className="mt-4 px-3 py-1 bg-white text-black rounded mx-auto block"
+                        onClick={() => setSelectedMovie(null)}
                       >
                         Close
                       </button>
                     </div>
-                  )}
+                  </div>
+                )}
+
                 </li>
               ))}
             </ul>

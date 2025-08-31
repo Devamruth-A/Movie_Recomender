@@ -3,14 +3,7 @@ import React from "react";
 const MovieCard = ({ movie, onClick, isSelected }) => {
   if (!movie) return <li className="movie-card">No movie data available</li>;
 
-  const {
-    title,
-    poster_path,
-    vote_average,
-    release_date,
-    original_language,
-    overview,
-  } = movie;
+  const { title, poster_path, vote_average, release_date, original_language } = movie;
 
   return (
     <li
@@ -20,11 +13,7 @@ const MovieCard = ({ movie, onClick, isSelected }) => {
       onClick={onClick}
     >
       <img
-        src={
-          poster_path
-            ? `https://image.tmdb.org/t/p/w200${poster_path}`
-            : "/placeholder.png"
-        }
+        src={poster_path ? `https://image.tmdb.org/t/p/w200${poster_path}` : "/placeholder.png"}
         alt={title || "Untitled"}
         className="rounded-lg brightness-110 contrast-125 saturate-150"
       />
