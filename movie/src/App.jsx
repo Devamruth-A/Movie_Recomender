@@ -129,7 +129,7 @@ const App = () => {
                 <li key={movie.$id} className="flex-shrink-0">
                   <p>{index + 1}</p>
                   <img src={movie.poster_url} alt={movie.searchTerm} />
-                  <span>{movie.searchTerm}</span>
+                
               
                 </li>
               ))}
