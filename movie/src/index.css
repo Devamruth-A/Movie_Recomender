@@ -159,3 +159,13 @@
     display: none;
   }
 }
+
+.all-movies {
+  @apply space-y-9;
+
+  & ul {
+    /* Force 2 columns on mobile instead of 1 */
+    @apply grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 
+           text-white text-base font-bold;
+  }
+}
