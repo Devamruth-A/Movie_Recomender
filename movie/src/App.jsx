@@ -27,6 +27,7 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch movies from TMDB
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
@@ -55,6 +56,7 @@ const App = () => {
     }
   };
 
+  // Load trending movies from Appwrite
   const loadTrendingMovies = async () => {
     try {
       const movies = await getTrendingMovies();
@@ -84,14 +86,35 @@ const App = () => {
     <main>
       <div className="pattern" />
       <div className="wrapper">
+        {/* Header */}
         <header>
           <img src="./hero.png" alt="Hero Banner" />
           <h1>
             Find <span className="text-gradient">Movies</span> You'll Enjoy
           </h1>
-          <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+          {/* Search Bar */}
+          <div className="relative w-full max-w-3xl mx-auto">
+            <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+            {/* Search suggestions */}
+            {searchTerm && !isLoading && movieList.length > 0 && (
+              <ul className="absolute bg-dark-100 text-white w-full mt-1 rounded shadow-lg z-50 max-h-60 overflow-y-auto">
+                {movieList.slice(0, 5).map((movie) => (
+                  <li
+                    key={movie.id}
+                    className="px-3 py-2 hover:bg-gray-700 cursor-pointer"
+                    onClick={() => setSelectedMovie(movie)}
+                  >
+                    {movie.title}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </header>
 
+        {/* Trending Movies */}
         {trendingMovies.length > 0 && (
           <section className="trending">
             <h2>Trending Movies</h2>
@@ -108,6 +131,7 @@ const App = () => {
           </section>
         )}
 
+        {/* All Movies */}
         <section className="all-movies relative">
           <h2>All Movies</h2>
           {isLoading ? (
@@ -128,31 +152,41 @@ const App = () => {
                 >
                   <MovieCard movie={movie} />
 
+                  {/* Movie Modal */}
                   {selectedMovie && selectedMovie.id === movie.id && (
-                  <div className="fixed inset-0 bg-black/90 text-white z-50 flex flex-col items-center justify-center p-4">
-                    <div className="relative max-w-lg w-full">
-                      <img
-                        src={`https://image.tmdb.org/t/p/w400${selectedMovie.poster_path}`}
-                        alt={selectedMovie.title}
-                        className="rounded-lg mb-4 max-h-[400px] object-contain mx-auto"
-                      />
-                      <h3 className="text-xl font-bold mb-2 text-center">{selectedMovie.title}</h3>
-                      <p className="text-gray-300 text-center text-sm">{selectedMovie.overview || "No description available."}</p>
-                      <div className="flex gap-4 mt-2 text-gray-400 text-xs justify-center">
-                        <span>⭐ {selectedMovie.vote_average?.toFixed(1) || "N/A"}</span>
-                        <span>📅 {selectedMovie.release_date?.slice(0, 4) || "—"}</span>
-                        <span>🌐 {selectedMovie.original_language || "N/A"}</span>
-                      </div>
-                      <button
-                        className="mt-4 px-3 py-1 bg-white text-black rounded mx-auto block"
-                        onClick={() => setSelectedMovie(null)}
+                    <div
+                      className="fixed inset-0 bg-black/90 text-white z-50 flex items-center justify-center p-4"
+                      onClick={() => setSelectedMovie(null)} // click outside closes
+                    >
+                      <div
+                        className="relative max-w-lg w-full"
+                        onClick={(e) => e.stopPropagation()} // stop closing when clicking modal
                       >
-                        Close
-                      </button>
+                        <img
+                          src={`https://image.tmdb.org/t/p/w400${selectedMovie.poster_path}`}
+                          alt={selectedMovie.title}
+                          className="rounded-lg mb-4 max-h-[400px] object-contain mx-auto"
+                        />
+                        <h3 className="text-xl font-bold mb-2 text-center">
+                          {selectedMovie.title}
+                        </h3>
+                        <p className="text-gray-300 text-center text-sm">
+                          {selectedMovie.overview || "No description available."}
+                        </p>
+                        <div className="flex gap-4 mt-2 text-gray-400 text-xs justify-center">
+                          <span>⭐ {selectedMovie.vote_average?.toFixed(1) || "N/A"}</span>
+                          <span>📅 {selectedMovie.release_date?.slice(0, 4) || "—"}</span>
+                          <span>🌐 {selectedMovie.original_language || "N/A"}</span>
+                        </div>
+                        <button
+                          className="mt-4 px-3 py-1 bg-white text-black rounded mx-auto block"
+                          onClick={() => setSelectedMovie(null)}
+                        >
+                          Close
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-
+                  )}
                 </li>
               ))}
             </ul>
