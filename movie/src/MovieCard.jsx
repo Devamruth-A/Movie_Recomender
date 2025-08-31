@@ -1,15 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getWatchProviders } from "./appwrite"; // or tmdb.js
 
 const MovieCard = ({ movie, onClick, isSelected }) => {
-  if (!movie) return <li className="movie-card">No movie data available</li>;
+  const [providers, setProviders] = useState([]);
+
+  useEffect(() => {
+    getWatchProviders(movie.id).then(setProviders);
+  }, [movie.id]);
 
   const { title, poster_path, vote_average, release_date, original_language } = movie;
 
   return (
     <li
-      className={`movie-card relative cursor-pointer transition-all duration-300 ${
-        isSelected ? "scale-105 z-10" : ""
-      }`}
+      className={`movie-card relative cursor-pointer transition-all duration-300 ${isSelected ? "scale-105 z-10" : ""}`}
       onClick={onClick}
     >
       <img
@@ -25,6 +28,24 @@ const MovieCard = ({ movie, onClick, isSelected }) => {
         </div>
         <span className="year">{release_date ? release_date.slice(0, 4) : "—"}</span>
         <span className="lang">{original_language || "N/A"}</span>
+
+        {providers.length > 0 && (
+          <div className="mt-2">
+            <p className="text-xs text-gray-400">Available on:</p>
+            <ul className="flex gap-2 flex-wrap mt-1">
+              {providers.map((provider) => (
+                <li key={provider.provider_id}>
+                  <img
+                    src={`https://image.tmdb.org/t/p/w45${provider.logo_path}`}
+                    alt={provider.provider_name}
+                    title={provider.provider_name}
+                    className="w-6 h-6 rounded"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </li>
   );

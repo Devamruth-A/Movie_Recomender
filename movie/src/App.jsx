@@ -31,20 +31,26 @@ const App = () => {
   const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
+    let allResults = [];
 
     try {
-      const endpoint = query
-        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`
-        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc&language=en-US&page=1&include_adult=false`;
+      // Fetch first 3 pages
+      for (let page = 1; page <= 3; page++) {
+        const endpoint = query
+          ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&language=en-US&page=${page}&include_adult=false`
+          : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc&language=en-US&page=${page}&include_adult=false`;
 
-      const response = await fetch(endpoint, API_OPTIONS);
-      if (!response.ok) throw new Error("Failed to fetch movies");
+        const response = await fetch(endpoint, API_OPTIONS);
+        if (!response.ok) throw new Error("Failed to fetch movies");
 
-      const data = await response.json();
-      setMovieList(data.results || []);
+        const data = await response.json();
+        allResults = [...allResults, ...(data.results || [])];
+      }
 
-      if (query && data.results.length > 0) {
-        await updateSearchCount(query, data.results[0]);
+      setMovieList(allResults);
+
+      if (query && allResults.length > 0) {
+        await updateSearchCount(query, allResults[0]);
         loadTrendingMovies();
       }
     } catch (error) {
@@ -100,9 +106,9 @@ const App = () => {
             {/* Search suggestions */}
             {searchTerm && !isLoading && movieList.length > 0 && (
               <ul className="absolute bg-dark-100 text-white w-full mt-1 rounded shadow-lg z-50 max-h-60 overflow-y-auto">
-                {movieList.slice(0, 5).map((movie) => (
+                {movieList.slice(0, 5).map((movie, index) => (
                   <li
-                    key={movie.id}
+                    key={`${movie.id}-${index}`}
                     className="px-3 py-2 hover:bg-gray-700 cursor-pointer"
                     onClick={() => setSelectedMovie(movie)}
                   >
@@ -118,9 +124,9 @@ const App = () => {
         {trendingMovies.length > 0 && (
           <section className="trending">
             <h2>Trending Movies</h2>
-            <ul>
+            <ul className="flex gap-4 overflow-x-auto">
               {trendingMovies.map((movie, index) => (
-                <li key={movie.$id}>
+                <li key={movie.$id} className="flex-shrink-0">
                   <p>{index + 1}</p>
                   <img src={movie.poster_url} alt={movie.searchTerm} />
                   <span>{movie.searchTerm}</span>
@@ -140,56 +146,49 @@ const App = () => {
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-              {filteredMovieList.map((movie) => (
-                <li
-                  key={movie.id}
-                  className={`relative transition-all duration-300 ${
-                    selectedMovie && selectedMovie.id !== movie.id
-                      ? "blur-sm opacity-50 pointer-events-none"
-                      : ""
-                  }`}
+              {filteredMovieList.map((movie, index) => (
+                <MovieCard
+                  key={`${movie.id}-${index}`}
+                  movie={movie}
                   onClick={() => setSelectedMovie(movie)}
-                >
-                  <MovieCard movie={movie} />
-
-                  {/* Movie Modal */}
-                  {selectedMovie && selectedMovie.id === movie.id && (
-                    <div
-                      className="fixed inset-0 bg-black/90 text-white z-50 flex items-center justify-center p-4"
-                      onClick={() => setSelectedMovie(null)} // click outside closes
-                    >
-                      <div
-                        className="relative max-w-lg w-full"
-                        onClick={(e) => e.stopPropagation()} // stop closing when clicking modal
-                      >
-                        <img
-                          src={`https://image.tmdb.org/t/p/w400${selectedMovie.poster_path}`}
-                          alt={selectedMovie.title}
-                          className="rounded-lg mb-4 max-h-[400px] object-contain mx-auto"
-                        />
-                        <h3 className="text-xl font-bold mb-2 text-center">
-                          {selectedMovie.title}
-                        </h3>
-                        <p className="text-gray-300 text-center text-sm">
-                          {selectedMovie.overview || "No description available."}
-                        </p>
-                        <div className="flex gap-4 mt-2 text-gray-400 text-xs justify-center">
-                          <span>⭐ {selectedMovie.vote_average?.toFixed(1) || "N/A"}</span>
-                          <span>📅 {selectedMovie.release_date?.slice(0, 4) || "—"}</span>
-                          <span>🌐 {selectedMovie.original_language || "N/A"}</span>
-                        </div>
-                        <button
-                          className="mt-4 px-3 py-1 bg-white text-black rounded mx-auto block"
-                          onClick={() => setSelectedMovie(null)}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </li>
+                  isSelected={selectedMovie?.id === movie.id}
+                />
               ))}
             </ul>
+          )}
+
+          {/* Movie Modal */}
+          {selectedMovie && (
+            <div
+              className="fixed inset-0 bg-black/90 text-white z-50 flex items-center justify-center p-4"
+              onClick={() => setSelectedMovie(null)} // click outside closes
+            >
+              <div
+                className="relative max-w-lg w-full"
+                onClick={(e) => e.stopPropagation()} // stop closing when clicking modal
+              >
+                <img
+                  src={`https://image.tmdb.org/t/p/w400${selectedMovie.poster_path}`}
+                  alt={selectedMovie.title}
+                  className="rounded-lg mb-4 max-h-[400px] object-contain mx-auto"
+                />
+                <h3 className="text-xl font-bold mb-2 text-center">{selectedMovie.title}</h3>
+                <p className="text-gray-300 text-center text-sm">
+                  {selectedMovie.overview || "No description available."}
+                </p>
+                <div className="flex gap-4 mt-2 text-gray-400 text-xs justify-center">
+                  <span>⭐ {selectedMovie.vote_average?.toFixed(1) || "N/A"}</span>
+                  <span>📅 {selectedMovie.release_date?.slice(0, 4) || "—"}</span>
+                  <span>🌐 {selectedMovie.original_language || "N/A"}</span>
+                </div>
+                <button
+                  className="mt-4 px-3 py-1 bg-white text-black rounded mx-auto block"
+                  onClick={() => setSelectedMovie(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           )}
         </section>
       </div>
